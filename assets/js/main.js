@@ -1,7 +1,14 @@
 const play = document.getElementById('play');
+const playHard = document.getElementById('play-hard');
 const grid = document.getElementById('grid');
 let showError = document.getElementById('error');
 const winMessage = document.getElementById('win-message');
+const gameOver = document.getElementById('game-over');
+const info = document.getElementById('info');
+const closeInfo = document.getElementById('close');
+
+
+
 let cardEl;
 let checkEl = [];
 let rearCheck = [];
@@ -10,6 +17,7 @@ let randCard = [];
 let cardArray = [];
 let matchedArray = [];
 let canClick = true;
+let arrayValue = 0;
 
 
 
@@ -25,11 +33,14 @@ function getRndInteger(min, max) {
 
 
 /**
- * After click Play the game start
+ * After click Play Normal the game start
  */
 play.addEventListener('click', function () {
+    gameOver.innerHTML = '';
     console.log('inizia');
-
+    arrayValue = 12;
+    info.innerHTML = 'Ci sono 6 copie di emoji uguali nascoste, tovale tutte per vincere!!';
+    closeInfo.innerHTML = 'Ho capito';
     //clear grid
     grid.innerHTML = '';
     //reset variables
@@ -67,6 +78,54 @@ play.addEventListener('click', function () {
     }
 });
 
+
+/**
+ * After click Play Hard the game start
+ */
+playHard.addEventListener('click', function () {
+    console.log('inizia');
+    gameOver.innerHTML = '';
+    arrayValue = 20;
+    info.innerHTML = 'Ci sono 10 copie di emoji uguali nascoste, tovale tutte per vincere!! <br> Ma attenzione, ci sono 4 ☠️ nascosti, se ne trovi 2 di fila hai perso. <br> Inoltre, non puoi commettere più di 15 errori.'
+    closeInfo.innerHTML = 'Ho capito';
+    
+    //clear grid
+    grid.innerHTML = '';
+    //reset variables
+    checkEl = [];
+    rearCheck = [];
+    errorCounter = 0;
+    randCard = [];
+    matchedArray = [];
+    canClick = true;
+    showError.innerHTML = 'Errori: ' + errorCounter;
+    winMessage.innerHTML = '';
+
+
+    //Array of content card
+    cardArray = ['🍄', '🍄', '💩', '💩', '🍩', '🍩', '🏀', '🏀', '❤️', '❤️', '☠️', '☠️', '🍄', '🍄', '💩', '💩', '🍩', '🍩', '🏀', '🏀', '❤️', '❤️', '☠️', '☠️' ];
+
+
+    //Generate 24 card
+    for (let i = 0; i < 24; i++) {
+        while (randCard.length < 24) {
+            let randNum = getRndInteger(0, 23);
+            if (!randCard.includes(randNum)) {
+                randCard.push(randNum);
+                const card = `<div class='card-container hard'>
+            <div class='on-card'>${cardArray[randNum]}</div>
+            <div class='off-card'></div>
+            </div>`
+                grid.insertAdjacentHTML('beforeend', card);
+            }
+        }
+
+        //Assign at each card the click function
+        cardEl = document.querySelectorAll('.card-container');
+        cardEl[i].addEventListener('click', cardClick);
+    }
+});
+
 /**
  * Function for click of card
  * @returns 
@@ -88,12 +147,26 @@ function cardClick() {
         canClick = false;
         //if the cards match
         if (checkEl[0] == checkEl[1]) {
+            if (checkEl[1] && checkEl[0] == '☠️'){
+                console.log('boooom');
+                setTimeout(() => {
+                    grid.innerHTML = '';
+                    gameOver.innerHTML = 'GAME OVER';
+                },1000);
+
+            }
             const a = rearCheck[0];
             const b = rearCheck[1];
             matchedArray.push(a, b);
             matched();
-        } else {
+        } else{
             errorCounter++;
+            if (errorCounter == 15) {
+                setTimeout(() => {
+                    grid.innerHTML = '';
+                    gameOver.innerHTML = 'GAME OVER <br> 15 ERRORI';
+                },1000);
+            }
             error();
             showError.innerHTML = 'Errori: ' + errorCounter;
         }
@@ -119,8 +192,13 @@ function matched() {
     console.log(matchedArray.length);
     rearCheck = [];
     canClick = true;
-    if (matchedArray.length == 12) {
+    if (matchedArray.length == arrayValue) {
         winMessage.innerHTML = 'Congratulazioni, la tua memoria è stata allenata!! <br> Clicca su Play e prova a battere il tuo punteggio.'
     }
 }
 
+closeInfo.addEventListener('click', function() {
+    info.innerHTML = '';
+    closeInfo.innerHTML = '';
+
+})
